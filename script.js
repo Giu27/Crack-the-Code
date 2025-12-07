@@ -186,7 +186,7 @@ backToMenuBtn.addEventListener("click", function() {
   menuDiv.classList.remove("hidden");
 });
 
-// Al click su "Parti la Sfida!"
+// Al click su "Inizia la Sfida!"
 startLevelBtn.addEventListener("click", function() {
   loreScreen.classList.add("hidden");
   gameDiv.classList.remove("hidden");
@@ -309,10 +309,8 @@ function getFeedbackMessage(evaluation, guess) {
     for (let i = 0; i < codeLength; i++) {
       if (evaluationList[i] === 2) iconLine += "🟢";
       else if (evaluationList[i] === 1) iconLine += "🟡";
-      else {
-        iconLine += "⚪";
-        excludeFromCards(guess[i]);
-      }
+      else iconLine += "⚪";
+      excludeFromCards(guess[i], evaluationList[i], i);
     }
     const phrases = [
       "Stai andando alla grande!",
@@ -622,16 +620,25 @@ function collapseClueCard(card) {
   buildClueCardGrid(card);
 }
 
-//Esclude un digit da tutte le clue card
-function excludeFromCards(digit) {
+//Aggiorna automaticamente la clue board quando in difficoltà facile
+function excludeFromCards(digit, evaluation, card_idx) {
+  current_card_idx = 0;
   document.querySelectorAll(".clue-card").forEach(card => {
     state = JSON.parse(card.dataset.digitsState);
-    if (state[digit] !== 1) {
+    if (evaluation === 0 || (evaluation === 2 && card_idx !== current_card_idx) || (evaluation === 1 && card_idx === current_card_idx)) {
+      if (state[digit] !== 1) {
       if (state[digit] === 2) {card.dataset.correctDigit = ""}
-      state[digit] = 1;
+        state[digit] = 1;
+      }
+    } else if (evaluation === 2 && card_idx === current_card_idx){
+      card.dataset.correctDigit = digit;
+      state.fill(1);
+      state[digit] = 2;
     }
+    
     card.dataset.digitsState = JSON.stringify(state);
     buildClueCardGrid(card);
+    current_card_idx++;
   });
 }
 
